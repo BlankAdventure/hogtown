@@ -47,16 +47,20 @@ def format_date(date_str: str):
         return date_str
 
 def logout():
-    del app.storage.user['is_authenticated']
-    button_bar.refresh()
+    del app.storage.user['is_authenticated']    
     ui.navigate.to('/')
 
 def login(username, password):
-    if (username == 'admin') and (password == 'admin1234'):
+    if (username == 'admin') and (password == '12345'):
         return True
     return False
                 
-    
+def is_auth():
+    try:
+        is_auth = app.storage.user.get('is_authenticated', False)
+        return is_auth
+    except AssertionError:
+        return False    
     
 def login_dialog():                
                 
@@ -78,31 +82,22 @@ def login_dialog():
     
     dialog.open()
    
-def is_auth():
-    try:
-        is_auth = app.storage.user.get('is_authenticated', False)
-        return is_auth
-    except AssertionError:
-        return False
+
         
-def test():
-    print(is_auth())
         
     
-@ui.refreshable       
-def button_bar():
-    with ui.row().classes('ml-auto'):            
-        ui.button('test', on_click=test)
-        ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
-        if is_auth():
-            ui.button('Logout', on_click=logout).classes('text-white')
-        else:
-            ui.button('Login', on_click=login_dialog).classes('text-white')
+
+#def button_bar():
 
 def header():
     with ui.header().classes('bg-blue-600 text-white items-center'):
         ui.label('The Hogtown Hash House Harriers').classes('text-2xl p-4')
-        button_bar()
+        with ui.row().classes('ml-auto'):        
+            ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
+            if is_auth():
+                ui.button('Logout', on_click=logout).classes('text-white')
+            else:
+                ui.button('Login', on_click=login_dialog).classes('text-white')
    
 @ui.refreshable                
 def rsvp_dialog(event, id):
