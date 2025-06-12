@@ -47,20 +47,47 @@ def format_date(date_str: str):
         return date_str
 
 def logout():
-    pass
+    app.storage.clear()
 
 
+def login(username, password):
+    if (username == 'admin') and (password == 'admin1234'):
+        return True
+    return False
+                
+    
+    
+def login_dialog():                
+                
+    def handle_login():
+        if login(username.value, password.value):
+            app.storage.user['is_authenticated'] = True
+            ui.notify('Login successful!', color='green')
+            header.refresh()
+        else:
+            ui.notify('Invalid credentials!', color='red')   
+        dialog.close()
+
+            
+    with ui.dialog() as dialog, ui.card().classes('w-full max-w-md mx-auto my-4'):
+        ui.label('Login').classes('text-2xl mb-4')
+        username = ui.input('Username').classes('w-full mb-2')
+        password = ui.input('Password', password=True).classes('w-full mb-4')
+        ui.button('Login', on_click=handle_login).classes('w-full bg-blue-500 text-white')
+    
+    dialog.open()
+   
+@ui.refreshable   
 def header():
     with ui.header().classes('bg-blue-600 text-white items-center'):
         ui.label('The Hogtown Hash House Harriers').classes('text-2xl p-4')
-        with ui.row().classes('ml-auto'):
+        with ui.row().classes('ml-auto'):            
             ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
             if app.storage.user.get('is_authenticated', False):
-                if app.storage.user.get('is_admin', False):
-                    ui.button('Admin', on_click=lambda: ui.navigate.to('/admin')).classes('text-white')
                 ui.button('Logout', on_click=logout).classes('text-white')
             else:
-                ui.button('Login', on_click=lambda: ui.navigate.to.to('/login')).classes('text-white')
+                ui.button('Login', on_click=login_dialog).classes('text-white')
+    
    
 @ui.refreshable                
 def rsvp_dialog(event, id):
