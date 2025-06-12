@@ -5,7 +5,7 @@ Created on Tue Jun  3 19:27:10 2025
 @author: BlankAdventure
 """
 import datetime
-from time import sleep
+import asyncio
 from nicegui import ui, app, ElementFilter
 from model import Route, session_factory, EventRepository, EventService
 
@@ -100,17 +100,9 @@ def time_picker(time):
             ui.icon('access_time').on('click', menu.open).classes('cursor-pointer')
     return time
    
-def event_dialog(in_event):
-
-    event = {}
-    title_str = "Add New Event"
-    button_str = "Add Event"
-    if in_event:
-        event = dict(in_event[0])
-        title_str = "Edit Existing Event"
-        button_str = "Update"
+async def event_dialog(in_event):
         
-    def handle_add():
+    async def handle_add():
         event_dict = {'title': title.value,                     
                       'date': date.value,
                       'time': time.value,
@@ -121,21 +113,30 @@ def event_dialog(in_event):
                       'route': Route[route.value],
                       'comments': notes.value
                       }
-        print(event_dict)
+        
         if in_event:            
             if service.modify_event(in_event[1], event_dict):                
-                ui.notify('event modified successfully!')          
+                ui.notify('event modified successfully!')    
+                await asyncio.sleep(2)
                 ui.navigate.to('/')
             else:
                 ui.notify('Could not update event.\nYou probably entered something wrong.')
         else:
             if service.add_event(event_dict):
                 ui.notify('event added successfully!')                
+                await asyncio.sleep(2)
                 ui.navigate.to('/')
             else:
                 ui.notify('Could not add event.\nYou probably entered something wrong.')
 
-            
+    event = {}
+    title_str = "Add New Event"
+    button_str = "Add Event"
+    
+    if in_event:
+        event = dict(in_event[0])
+        title_str = "Edit Existing Event"
+        button_str = "Update"            
     
     with ui.dialog().props('persistent')  as dialog, ui.card():
         ui.label(title_str).classes('font-bold text-lg')
@@ -143,7 +144,7 @@ def event_dialog(in_event):
             title = ui.input('Event title:', value=event.get('title')).props('dense').classes('w-80')
             with ui.row():
                 date = date_picker(event.get('date'))
-                time = time_picker(event.get('time'))
+                time = time_picker(event.get('time',"19:00"))
             hosts = ui.input('Hares (comma-separated):', value=", ".join(event.get('hosts',[]))).props('dense').classes('w-80')
             location = ui.input('Start location:', value=event.get('location')).props('dense').classes('w-80')
             with ui.row():
@@ -241,7 +242,7 @@ def index():
     
     with ui.column().classes('w-full p-0 m-0'): 
         ui.label('About Hashing').classes('text-2xl mb-4 w-full pl-10 m-0 bg-white/70')
-        ui.label(about_hasing).classes('pl-10 pr-20 text-white text-xl')
+        ui.label(about_hasing).classes('ml-10 mr-10 text-gray-50 text-xl bg-purple-400/10 backdrop-blur-md') #bg-indigo-500/20
         ui.label('Upcoming Events').classes('text-2xl mb-4 w-full pl-10 bg-white/70')
         
         events = service.get_all_events()
