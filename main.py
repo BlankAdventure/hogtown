@@ -73,7 +73,7 @@ def login_dialog():
             ui.notify('Invalid credentials!', color='red')   
         dialog.close()
             
-    with ui.dialog() as dialog, ui.card().classes('w-full max-w-md mx-auto my-4'):
+    with ui.dialog() as dialog, ui.card().classes('w-80 max-w-md mx-auto my-4'):
         ui.label('Login').classes('text-2xl mb-4')
         username = ui.input('Username').classes('w-full mb-2')
         password = ui.input('Password', password=True).classes('w-full mb-4')
