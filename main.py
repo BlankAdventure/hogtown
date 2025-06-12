@@ -81,24 +81,27 @@ def login_dialog():
         ui.button('Login', on_click=handle_login).classes('w-full bg-blue-500 text-white')
     
     dialog.open()
-   
 
-        
-        
+
+   
+def new_event():
+    pass
+
+def delete_dialog(event, id):
     
+    def handle_delete():
+        service.delete_event(id)
+        ui.notify('event deleted')
+        ui.navigate.to('/')
+        
+    with ui.dialog() as dialog, ui.card().classes('gap-0 items-center'):  # max-w-md mx-auto my-4       
+        ui.label('Are you sure you want to delete this event?').classes('mb-2 text-lg')
+        ui.label(event.title).classes('mb-4 font-bold text-lg')
+        with ui.row():
+            ui.button('HELLL YA!', on_click=handle_delete)
+            ui.button('NO', on_click=dialog.close)
+    dialog.open()
 
-#def button_bar():
-
-def header():
-    with ui.header().classes('bg-blue-600 text-white items-center'):
-        ui.label('The Hogtown Hash House Harriers').classes('text-2xl p-4')
-        with ui.row().classes('ml-auto'):        
-            ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
-            if is_auth():
-                ui.button('Logout', on_click=logout).classes('text-white')
-            else:
-                ui.button('Login', on_click=login_dialog).classes('text-white')
-   
 @ui.refreshable                
 def rsvp_dialog(event, id):
     def add_rsvp():
@@ -121,6 +124,18 @@ def rsvp_dialog(event, id):
                     ui.label(name).classes('italic')
     dialog.open()
     
+    
+def header():
+    with ui.header().classes('bg-blue-600 text-white items-center'):
+        ui.label('The Hogtown Hash House Harriers').classes('text-2xl p-4')
+        with ui.row().classes('ml-auto'):        
+            ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
+            if is_auth():
+                ui.button('New Event', on_click=new_event).classes('text-white').props('color=red')
+                ui.button('Logout', on_click=logout).classes('text-white')
+            else:
+                ui.button('Login', on_click=login_dialog).classes('text-white')
+    
 def event_panel(in_event):
     id = in_event[1]
     event = in_event[0]
@@ -137,8 +152,11 @@ def event_panel(in_event):
                     with ui.column().classes('p-0 gap-1'):
                         ui.label(event.title).classes('text-xl font-bold')
                         ui.label(f'{event.date.strftime(("%A %B %d, %Y"))} @ {event.time.strftime("%#I:%M %p")}').classes('font-bold')
-                    ui.space()
+                    ui.space()                    
                     ui.button("RSVP!", on_click=lambda: rsvp_dialog(event, id)).classes('justify-end')
+                    if is_auth():
+                        ui.button(icon='edit').classes('justify-end').props('color=red')
+                        ui.button(icon='delete', on_click=lambda: delete_dialog(event, id)).classes('justify-end').props('color=red')
                 with ui.column().classes('p-2 gap-1'):
                     entry_line("Hares:", ", ".join(event.hosts))
                     entry_line('Start location:',event.location)
