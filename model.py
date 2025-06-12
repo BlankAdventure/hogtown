@@ -115,8 +115,12 @@ class EventService:
 
     def add_event(self, data: dict) -> bool:
         """Add a new event to the database."""
-        orm_event = self.to_orm(data)
-        return self.repository.add_event(orm_event)
+        try:
+            orm_event = self.to_orm(data)
+            return self.repository.add_event(orm_event)
+        except Exception as e:
+            print(e)
+            return False
 
     def get_all_events(self, skip: int = 0, limit: int = 100) -> List[tuple[Event_model, int]]:
         """Retrieve all events, converted to Event_model."""
@@ -158,8 +162,8 @@ class EventService:
     
 # data = {
 #     "title": "Test Event",
-#     "date": date.today().isoformat(),
-#     "time": time(14, 30).isoformat(),
+#     "date": datetime.date.today().isoformat(),
+#     "time": datetime.time(14, 30).isoformat(),
 #     "hosts": ["Alice", "Bob"],
 #     "location": "Test City",
 #     "ttc": "Bus",
@@ -169,8 +173,9 @@ class EventService:
 #     "rsvp": ["Charlie"]
 # }    
 
-# #Sesh = session_factory('sqlite:///:memory:')    
-# repo = EventRepository( session_factory() )
-# service = EventService(repo)
-# service.add_event(data)
-# res = service.add_rsvp(1, "Alex")           
+#Sesh = session_factory('sqlite:///:memory:')    
+#repo = EventRepository( session_factory() )
+#service = EventService(repo)
+#res = service.add_event(data)
+#print(res)
+#res = service.add_rsvp(1, "Alex")           

@@ -5,6 +5,7 @@ Created on Tue Jun  3 19:27:10 2025
 @author: BlankAdventure
 """
 import datetime
+from time import sleep
 from nicegui import ui, app, ElementFilter
 from model import Route, session_factory, EventRepository, EventService
 
@@ -79,37 +80,80 @@ def login_dialog():
         ui.button('Login', on_click=handle_login).classes('w-full bg-blue-500 text-white')    
     dialog.open()
 
-
+def date_picker(date):
+    with ui.input('Date:', value=date).props('dense').classes('w-40') as date:
+        with ui.menu().props('no-parent-event dense') as menu:
+            with ui.date().bind_value(date):
+                with ui.row().classes('justify-end'):
+                    ui.button('Close', on_click=menu.close).props('flat')
+        with date.add_slot('append'):
+            ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
+    return date
    
-def new_event():
-    with ui.dialog() as dialog, ui.card(): #.classes('gap-0 items-center'):  # max-w-md mx-auto my-4       
-        with ui.grid(columns=2):
-            ui.label('Title:')
-            ui.input('Event title').props('dense')
+def time_picker(time):
+    with ui.input('Time:', value=time).props('dense').classes('w-40') as time:
+        with ui.menu().props('no-parent-event dense') as menu:
+            with ui.time().bind_value(time):
+                with ui.row().classes('justify-end'):
+                    ui.button('Close', on_click=menu.close).props('flat')
+        with time.add_slot('append'):
+            ui.icon('access_time').on('click', menu.open).classes('cursor-pointer')
+    return time
+   
+def event_dialog(in_event):
 
-            ui.label('Date:')
-            ui.input('data')
+    event = {}
+    title_str = "Add New Event"
+    button_str = "Add Event"
+    if in_event:
+        event = dict(in_event[0])
+        title_str = "Edit Existing Event"
+        button_str = "Update"
+        
+    def handle_add():
+        event_dict = {'title': title.value,                     
+                      'date': date.value,
+                      'time': time.value,
+                      'hosts': hosts.value.split(','),
+                      'location': location.value,
+                      'ttc': ttc.value,
+                      'cost': cost.value,
+                      'route': Route[route.value],
+                      'comments': notes.value
+                      }
+        print(event_dict)
+        if in_event:            
+            if service.modify_event(in_event[1], event_dict):                
+                ui.notify('event modified successfully!')          
+                ui.navigate.to('/')
+            else:
+                ui.notify('Could not update event.\nYou probably entered something wrong.')
+        else:
+            if service.add_event(event_dict):
+                ui.notify('event added successfully!')                
+                ui.navigate.to('/')
+            else:
+                ui.notify('Could not add event.\nYou probably entered something wrong.')
 
-            ui.label('Time:')
-            ui.input('time')
-
-            ui.label('Hares:')
-            ui.input('hares')
-
-            ui.label('Start:')
-            ui.input('start')
-
-            ui.label('TTC:')
-            ui.input('ttc')
-
-            ui.label('Cost:')
-            ui.input('cost')
-
-            ui.label('Route:')
-            ui.input('route')
-
-            ui.label('Notes:')
-            ui.input('notes')
+            
+    
+    with ui.dialog().props('persistent')  as dialog, ui.card():
+        ui.label(title_str).classes('font-bold text-lg')
+        with ui.column().classes('m-0 p-0 gap-1'):
+            title = ui.input('Event title:', value=event.get('title')).props('dense').classes('w-80')
+            with ui.row():
+                date = date_picker(event.get('date'))
+                time = time_picker(event.get('time'))
+            hosts = ui.input('Hares (comma-separated):', value=", ".join(event.get('hosts',[]))).props('dense').classes('w-80')
+            location = ui.input('Start location:', value=event.get('location')).props('dense').classes('w-80')
+            with ui.row():
+                ttc = ui.input('TTC:', value=event.get('ttc')).props('dense').classes('w-24')
+                cost = ui.number('Cost:',precision=2,min=0.00,value=event.get('cost',10.00),format='%.2f',suffix='$',step=0.01).props('dense').classes('w-24')
+                route = ui.select(label='Route:',options= {i.name: i.value for i in Route},value=event.get('route',Route.AA).name ).props('dense').classes('w-24')
+            notes = ui.textarea('Notes:', value=event.get('comments')).props('dense outlined').classes('w-80 mt-4')
+        with ui.row():
+            ui.button(button_str, on_click=handle_add)
+            ui.button('cancel', on_click=dialog.close)
     dialog.open()
 
 def delete_dialog(event, id):    
@@ -155,7 +199,7 @@ def header():
         with ui.row().classes('ml-auto'):        
             ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
             if is_auth():
-                ui.button('New Event', on_click=new_event).classes('text-white').props('color=red')
+                ui.button('New Event', on_click=lambda: event_dialog(None)).classes('text-white').props('color=red')
                 ui.button('Logout', on_click=logout).classes('text-white')
             else:
                 ui.button('Login', on_click=login_dialog).classes('text-white')
@@ -179,7 +223,7 @@ def event_panel(in_event):
                     ui.space()                    
                     ui.button("RSVP!", on_click=lambda: rsvp_dialog(event, id)).classes('justify-end')
                     if is_auth():
-                        ui.button(icon='edit').classes('justify-end').props('color=red')
+                        ui.button(icon='edit', on_click=lambda: event_dialog(in_event)).classes('justify-end').props('color=red')
                         ui.button(icon='delete', on_click=lambda: delete_dialog(event, id)).classes('justify-end').props('color=red')
                 with ui.column().classes('p-2 gap-1'):
                     entry_line("Hares:", ", ".join(event.hosts))
