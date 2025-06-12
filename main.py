@@ -63,7 +63,6 @@ def is_auth():
         return False    
     
 def login_dialog():                
-                
     def handle_login():
         if login(username.value, password.value):
             app.storage.user['is_authenticated'] = True
@@ -72,23 +71,48 @@ def login_dialog():
         else:
             ui.notify('Invalid credentials!', color='red')   
         dialog.close()
-
             
     with ui.dialog() as dialog, ui.card().classes('w-full max-w-md mx-auto my-4'):
         ui.label('Login').classes('text-2xl mb-4')
         username = ui.input('Username').classes('w-full mb-2')
         password = ui.input('Password', password=True).classes('w-full mb-4')
-        ui.button('Login', on_click=handle_login).classes('w-full bg-blue-500 text-white')
-    
+        ui.button('Login', on_click=handle_login).classes('w-full bg-blue-500 text-white')    
     dialog.open()
 
 
    
 def new_event():
-    pass
+    with ui.dialog() as dialog, ui.card(): #.classes('gap-0 items-center'):  # max-w-md mx-auto my-4       
+        with ui.grid(columns=2):
+            ui.label('Title:')
+            ui.input('Event title').props('dense')
 
-def delete_dialog(event, id):
-    
+            ui.label('Date:')
+            ui.input('data')
+
+            ui.label('Time:')
+            ui.input('time')
+
+            ui.label('Hares:')
+            ui.input('hares')
+
+            ui.label('Start:')
+            ui.input('start')
+
+            ui.label('TTC:')
+            ui.input('ttc')
+
+            ui.label('Cost:')
+            ui.input('cost')
+
+            ui.label('Route:')
+            ui.input('route')
+
+            ui.label('Notes:')
+            ui.input('notes')
+    dialog.open()
+
+def delete_dialog(event, id):    
     def handle_delete():
         service.delete_event(id)
         ui.notify('event deleted')
