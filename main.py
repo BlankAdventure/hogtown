@@ -47,8 +47,9 @@ def format_date(date_str: str):
         return date_str
 
 def logout():
-    app.storage.clear()
-
+    del app.storage.user['is_authenticated']
+    button_bar.refresh()
+    ui.navigate.to('/')
 
 def login(username, password):
     if (username == 'admin') and (password == 'admin1234'):
@@ -63,7 +64,7 @@ def login_dialog():
         if login(username.value, password.value):
             app.storage.user['is_authenticated'] = True
             ui.notify('Login successful!', color='green')
-            header.refresh()
+            ui.navigate.to('/')            
         else:
             ui.notify('Invalid credentials!', color='red')   
         dialog.close()
@@ -77,17 +78,31 @@ def login_dialog():
     
     dialog.open()
    
-@ui.refreshable   
+def is_auth():
+    try:
+        is_auth = app.storage.user.get('is_authenticated', False)
+        return is_auth
+    except AssertionError:
+        return False
+        
+def test():
+    print(is_auth())
+        
+    
+@ui.refreshable       
+def button_bar():
+    with ui.row().classes('ml-auto'):            
+        ui.button('test', on_click=test)
+        ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
+        if is_auth():
+            ui.button('Logout', on_click=logout).classes('text-white')
+        else:
+            ui.button('Login', on_click=login_dialog).classes('text-white')
+
 def header():
     with ui.header().classes('bg-blue-600 text-white items-center'):
         ui.label('The Hogtown Hash House Harriers').classes('text-2xl p-4')
-        with ui.row().classes('ml-auto'):            
-            ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
-            if app.storage.user.get('is_authenticated', False):
-                ui.button('Logout', on_click=logout).classes('text-white')
-            else:
-                ui.button('Login', on_click=login_dialog).classes('text-white')
-    
+        button_bar()
    
 @ui.refreshable                
 def rsvp_dialog(event, id):
