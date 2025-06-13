@@ -47,8 +47,10 @@ def format_date(date_str: str):
     except (ValueError, TypeError):
         return date_str
 
-def logout():
-    del app.storage.user['is_authenticated']    
+async def logout():
+    app.storage.user.clear()
+    ui.notify("You have been logged out.")
+    await asyncio.sleep(2)    
     ui.navigate.to('/')
 
 def login(username, password):
@@ -63,10 +65,11 @@ def is_auth():
     except AssertionError:
         return False    
     
-def login_dialog():                
-    def handle_login():
+async def login_dialog():                
+    async def handle_login():
         if login(username.value, password.value):
             app.storage.user['is_authenticated'] = True
+            await asyncio.sleep(2)
             ui.notify('Login successful!', color='green')
             ui.navigate.to('/')            
         else:
@@ -112,8 +115,7 @@ async def event_dialog(in_event):
                       'cost': cost.value,
                       'route': Route[route.value],
                       'comments': notes.value
-                      }
-        
+                      }        
         if in_event:            
             if service.modify_event(in_event[1], event_dict):                
                 ui.notify('event modified successfully!')    
@@ -171,7 +173,7 @@ def delete_dialog(event, id):
             ui.button('NO', on_click=dialog.close)
     dialog.open()
 
-@ui.refreshable                
+#@ui.refreshable                
 def rsvp_dialog(event, id):
     def add_rsvp():
         event.rsvp.append(name_input.value)
