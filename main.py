@@ -284,7 +284,7 @@ def add_sample_data(service):
         service.add_event(event_data)
 
 
-def run_app_memroy():    
+def run_app_memory():    
     
     repo = EventRepository( session_factory() )
     service = EventService(repo)
@@ -306,6 +306,8 @@ def run_app(db_url):
     
 
         
-run_app_memroy()
 
-ui.run(storage_secret='testtest')
+
+if __name__ in {'__main__', '__mp_main__'}:
+    run_app_memory()
+    ui.run(storage_secret='testtest')
