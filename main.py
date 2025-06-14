@@ -10,8 +10,8 @@ from nicegui import ui, app, ElementFilter
 from model import Route, session_factory, EventRepository, EventService
 
 
-repo = EventRepository( session_factory() )
-service = EventService(repo)
+#repo = EventRepository( session_factory() )
+#service = EventService(repo)
 
 app.add_static_files('/images', '.')
 
@@ -103,7 +103,7 @@ def time_picker(time):
             ui.icon('access_time').on('click', menu.open).classes('cursor-pointer')
     return time
    
-async def event_dialog(in_event):
+async def event_dialog(service, in_event):
         
     async def handle_add():
         event_dict = {'title': title.value,                     
@@ -159,9 +159,9 @@ async def event_dialog(in_event):
             ui.button('cancel', on_click=dialog.close)
     dialog.open()
 
-def delete_dialog(event, id):    
+def delete_dialog(service, event):    
     def handle_delete():
-        service.delete_event(id)
+        service.delete_event(event[1])
         ui.notify('event deleted')
         ui.navigate.to('/')
         
@@ -174,10 +174,10 @@ def delete_dialog(event, id):
     dialog.open()
 
 #@ui.refreshable                
-def rsvp_dialog(event, id):
+def rsvp_dialog(service, event):
     def add_rsvp():
         event.rsvp.append(name_input.value)
-        service.add_rsvp(id, name_input.value)        
+        service.add_rsvp(event[1], name_input.value)        
         dialog.close()
         dialog.clear()
         
@@ -207,10 +207,8 @@ def header():
             else:
                 ui.button('Login', on_click=login_dialog).classes('text-white')
     
-def event_panel(in_event):
-    id = in_event[1]
+def event_panel(service, in_event):
     event = in_event[0]
-
     def entry_line(desc,value):
         with ui.row().classes('p-0 gap-1'):
             ui.label(desc).classes('font-bold')
@@ -224,10 +222,10 @@ def event_panel(in_event):
                         ui.label(event.title).classes('text-xl font-bold')
                         ui.label(f'{event.date.strftime(("%A %B %d, %Y"))} @ {event.time.strftime("%#I:%M %p")}').classes('font-bold')
                     ui.space()                    
-                    ui.button("RSVP!", on_click=lambda: rsvp_dialog(event, id)).classes('justify-end')
+                    ui.button("RSVP!", on_click=lambda: rsvp_dialog(service, in_event)).classes('justify-end')
                     if is_auth():
-                        ui.button(icon='edit', on_click=lambda: event_dialog(in_event)).classes('justify-end').props('color=red')
-                        ui.button(icon='delete', on_click=lambda: delete_dialog(event, id)).classes('justify-end').props('color=red')
+                        ui.button(icon='edit', on_click=lambda: event_dialog(service, in_event)).classes('justify-end').props('color=red')
+                        ui.button(icon='delete', on_click=lambda: delete_dialog(service, in_event)).classes('justify-end').props('color=red')
                 with ui.column().classes('p-2 gap-1'):
                     entry_line("Hares:", ", ".join(event.hosts))
                     entry_line('Start location:',event.location)
@@ -236,8 +234,8 @@ def event_panel(in_event):
                     entry_line('Route:',event.route.value)
                     entry_line('Notes from the hares:', event.comments)
                 
-@ui.page('/')
-def index():
+
+def base(service):
     ui.query('.nicegui-content').classes('p-0')
     ui.query('body').style('background-image: url("/images/background.jpg"); background-size: cover; background-repeat: no-repeat; background-attachment: fixed; background-position: center;' )
     header()
@@ -252,10 +250,10 @@ def index():
             ui.label('No upcoming events.').classes('italic')        
         with ui.column().classes('pl-10 w-full'):
             for event in events:
-                event_panel(event)
-    
+                event_panel(service, event)
 
-def add_sample_data():
+
+def add_sample_data(service):
     sample_events = [
         {
             'title': 'Hogans!',
@@ -284,7 +282,30 @@ def add_sample_data():
     
     for event_data in sample_events:
         service.add_event(event_data)
+
+
+def run_app_memroy():    
+    
+    repo = EventRepository( session_factory() )
+    service = EventService(repo)
+    add_sample_data(service)
+
+    @ui.page('/')
+    def index():
+        base(service)
+
+def run_app(db_url):    
+    
+    repo = EventRepository( session_factory(db_url) )
+    service = EventService(repo)
+
+    @ui.page('/')
+    def index():
+        base(service)
+
+    
+
         
-add_sample_data()
+run_app_memroy()
 
 ui.run(storage_secret='testtest')
