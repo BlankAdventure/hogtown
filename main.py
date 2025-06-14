@@ -196,13 +196,13 @@ def rsvp_dialog(service, event):
     dialog.open()
     
     
-def header():
+def header(service):
     with ui.header().classes('bg-blue-600 text-white items-center'):
         ui.label('The Hogtown Hash House Harriers').classes('text-2xl p-4')
         with ui.row().classes('ml-auto'):        
             ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
             if is_auth():
-                ui.button('New Event', on_click=lambda: event_dialog(None)).classes('text-white').props('color=red')
+                ui.button('New Event', on_click=lambda: event_dialog(service, None)).classes('text-white').props('color=red')
                 ui.button('Logout', on_click=logout).classes('text-white')
             else:
                 ui.button('Login', on_click=login_dialog).classes('text-white')
@@ -238,7 +238,7 @@ def event_panel(service, in_event):
 def base(service):
     ui.query('.nicegui-content').classes('p-0')
     ui.query('body').style('background-image: url("/images/background.jpg"); background-size: cover; background-repeat: no-repeat; background-attachment: fixed; background-position: center;' )
-    header()
+    header(service)
     
     with ui.column().classes('w-full p-0 m-0'): 
         ui.label('About Hashing').classes('text-2xl mb-4 w-full pl-10 m-0 bg-white/70')
