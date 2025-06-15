@@ -207,13 +207,12 @@ def header(service: EventService) -> None:
             else:
                 ui.button('Login', on_click=login_dialog).classes('text-white')
     
-def event_panel(service: EventService, event: Event) -> None:
-    #event = in_event[0]
+def event_panel(service: EventService, event: Event) -> None:    
     def entry_line(desc,value):
         with ui.row().classes('p-0 gap-1'):
             ui.label(desc).classes('font-bold')
-            ui.label(value).classes('text-gray-600')                
-
+            ui.label(value).classes('text-gray-600')
+            
     with ui.card().classes('w-2/5 p-0'): 
         with ui.row().classes('items-center w-full'):
             with ui.column().classes('p-0 gap-1 w-full'):

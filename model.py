@@ -38,7 +38,7 @@ class Route(str, Enum):
 
 class Event_model(BaseModel):
     title: str
-    date: datetime.date = Field(description="ISO format date", ge=datetime.date.today())
+    date: datetime.date = Field(description="ISO format date")
     time: datetime.time = Field(description="ISO format time")
     hosts: List[str]
     location: str
