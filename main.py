@@ -7,8 +7,8 @@ Created on Tue Jun  3 19:27:10 2025
 import datetime
 import asyncio
 from nicegui import ui, app, ElementFilter
-from model import Route, session_factory, EventRepository, EventService
-
+from model import Route, session_factory, EventRepository, EventService, Event_model
+Event = tuple[Event_model, int]
 
 #repo = EventRepository( session_factory() )
 #service = EventService(repo)
@@ -38,7 +38,7 @@ def borders_on():
     ElementFilter(kind=ui.label).style('border: solid; border-width: thin; border-color: yellow');
     ElementFilter(kind=ui.element).style('border: solid; border-width: thin; border-color: blue');
     
-def format_date(date_str: str):
+def format_date(date_str: str) -> str:
     if not date_str:
         return ""
     try:
@@ -47,26 +47,26 @@ def format_date(date_str: str):
     except (ValueError, TypeError):
         return date_str
 
-async def logout():
+async def logout() -> None:
     app.storage.user.clear()
     ui.notify("You have been logged out.")
     await asyncio.sleep(2)    
     ui.navigate.to('/')
 
-def login(username, password):
+def login(username: str, password: str) -> bool:
     if (username == 'admin') and (password == '12345'):
         return True
     return False
                 
-def is_auth():
+def is_auth() -> bool:
     try:
         is_auth = app.storage.user.get('is_authenticated', False)
         return is_auth
     except AssertionError:
         return False    
     
-async def login_dialog():                
-    async def handle_login():
+async def login_dialog() -> None:                
+    async def handle_login() -> None:
         if login(username.value, password.value):
             app.storage.user['is_authenticated'] = True
             await asyncio.sleep(2)
@@ -83,8 +83,8 @@ async def login_dialog():
         ui.button('Login', on_click=handle_login).classes('w-full bg-blue-500 text-white')    
     dialog.open()
 
-def date_picker(date):
-    with ui.input('Date:', value=date).props('dense').classes('w-40') as date:
+def date_picker(in_date: str) -> ui.input:
+    with ui.input('Date:', value=in_date).props('dense').classes('w-40') as date:
         with ui.menu().props('no-parent-event dense') as menu:
             with ui.date().bind_value(date):
                 with ui.row().classes('justify-end'):
@@ -93,8 +93,8 @@ def date_picker(date):
             ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
     return date
    
-def time_picker(time):
-    with ui.input('Time:', value=time).props('dense').classes('w-40') as time:
+def time_picker(in_time: str) -> ui.input:
+    with ui.input('Time:', value=in_time).props('dense').classes('w-40') as time:
         with ui.menu().props('no-parent-event dense') as menu:
             with ui.time().bind_value(time):
                 with ui.row().classes('justify-end'):
@@ -103,9 +103,9 @@ def time_picker(time):
             ui.icon('access_time').on('click', menu.open).classes('cursor-pointer')
     return time
    
-async def event_dialog(service, in_event):
+async def event_dialog(service: EventService, event: Event|None) -> None:
         
-    async def handle_add():
+    async def handle_add() -> None:
         event_dict = {'title': title.value,                     
                       'date': date.value,
                       'time': time.value,
@@ -116,8 +116,8 @@ async def event_dialog(service, in_event):
                       'route': Route[route.value],
                       'comments': notes.value
                       }        
-        if in_event:            
-            if service.modify_event(in_event[1], event_dict):                
+        if event:            
+            if service.modify_event(event[1], event_dict):                
                 ui.notify('event modified successfully!')    
                 await asyncio.sleep(2)
                 ui.navigate.to('/')
@@ -131,52 +131,52 @@ async def event_dialog(service, in_event):
             else:
                 ui.notify('Could not add event.\nYou probably entered something wrong.')
 
-    event = {}
+    new_event = {}
     title_str = "Add New Event"
     button_str = "Add Event"
     
-    if in_event:
-        event = dict(in_event[0])
+    if event:
+        new_event = dict(event[0])
         title_str = "Edit Existing Event"
         button_str = "Update"            
     
     with ui.dialog().props('persistent')  as dialog, ui.card():
         ui.label(title_str).classes('font-bold text-lg')
         with ui.column().classes('m-0 p-0 gap-1'):
-            title = ui.input('Event title:', value=event.get('title')).props('dense').classes('w-80')
+            title = ui.input('Event title:', value=new_event.get('title')).props('dense').classes('w-80')
             with ui.row():
-                date = date_picker(event.get('date'))
-                time = time_picker(event.get('time',"19:00"))
-            hosts = ui.input('Hares (comma-separated):', value=", ".join(event.get('hosts',[]))).props('dense').classes('w-80')
-            location = ui.input('Start location:', value=event.get('location')).props('dense').classes('w-80')
+                date = date_picker(new_event.get('date'))
+                time = time_picker(new_event.get('time',"19:00"))
+            hosts = ui.input('Hares (comma-separated):', value=", ".join(new_event.get('hosts',[]))).props('dense').classes('w-80')
+            location = ui.input('Start location:', value=new_event.get('location')).props('dense').classes('w-80')
             with ui.row():
-                ttc = ui.input('TTC:', value=event.get('ttc')).props('dense').classes('w-24')
-                cost = ui.number('Cost:',precision=2,min=0.00,value=event.get('cost',10.00),format='%.2f',suffix='$',step=0.01).props('dense').classes('w-24')
-                route = ui.select(label='Route:',options= {i.name: i.value for i in Route},value=event.get('route',Route.AA).name ).props('dense').classes('w-24')
-            notes = ui.textarea('Notes:', value=event.get('comments')).props('dense outlined').classes('w-80 mt-4')
+                ttc = ui.input('TTC:', value=new_event.get('ttc')).props('dense').classes('w-24')
+                cost = ui.number('Cost:',precision=2,min=0.00,value=new_event.get('cost',10.00),format='%.2f',suffix='$',step=0.01).props('dense').classes('w-24')
+                route = ui.select(label='Route:',options= {i.name: i.value for i in Route},value=new_event.get('route',Route.AA).name ).props('dense').classes('w-24')
+            notes = ui.textarea('Notes:', value=new_event.get('comments')).props('dense outlined').classes('w-80 mt-4')
         with ui.row():
             ui.button(button_str, on_click=handle_add)
             ui.button('cancel', on_click=dialog.close)
     dialog.open()
 
-def delete_dialog(service, event):    
-    def handle_delete():
+def delete_dialog(service: EventService, event: Event) -> None:    
+    def handle_delete() -> None:
         service.delete_event(event[1])
         ui.notify('event deleted')
         ui.navigate.to('/')
         
     with ui.dialog() as dialog, ui.card().classes('gap-0 items-center'):  # max-w-md mx-auto my-4       
         ui.label('Are you sure you want to delete this event?').classes('mb-2 text-lg')
-        ui.label(event.title).classes('mb-4 font-bold text-lg')
+        ui.label(event[0].title).classes('mb-4 font-bold text-lg')
         with ui.row():
             ui.button('HELLL YA!', on_click=handle_delete)
             ui.button('NO', on_click=dialog.close)
     dialog.open()
 
-#@ui.refreshable                
-def rsvp_dialog(service, event):
-    def add_rsvp():
-        event.rsvp.append(name_input.value)
+               
+def rsvp_dialog(service: EventService, event: Event) -> None:
+    def add_rsvp() -> None:
+        event[0].rsvp.append(name_input.value)
         service.add_rsvp(event[1], name_input.value)        
         dialog.close()
         dialog.clear()
@@ -191,12 +191,12 @@ def rsvp_dialog(service, event):
                     ui.button('Cancel', on_click=dialog.close)
             with ui.column().classes('ml-5 p-0 gap-0'):
                 ui.label("Who's Cumming").classes('font-bold w-full border-b')
-                for name in event.rsvp:
+                for name in event[0].rsvp:
                     ui.label(name).classes('italic')
     dialog.open()
     
     
-def header(service):
+def header(service: EventService) -> None:
     with ui.header().classes('bg-blue-600 text-white items-center'):
         ui.label('The Hogtown Hash House Harriers').classes('text-2xl p-4')
         with ui.row().classes('ml-auto'):        
@@ -207,8 +207,8 @@ def header(service):
             else:
                 ui.button('Login', on_click=login_dialog).classes('text-white')
     
-def event_panel(service, in_event):
-    event = in_event[0]
+def event_panel(service: EventService, event: Event) -> None:
+    #event = in_event[0]
     def entry_line(desc,value):
         with ui.row().classes('p-0 gap-1'):
             ui.label(desc).classes('font-bold')
@@ -219,23 +219,23 @@ def event_panel(service, in_event):
             with ui.column().classes('p-0 gap-1 w-full'):
                 with ui.row().classes('w-full items-center bg-slate-300 p-2'):
                     with ui.column().classes('p-0 gap-1'):
-                        ui.label(event.title).classes('text-xl font-bold')
-                        ui.label(f'{event.date.strftime(("%A %B %d, %Y"))} @ {event.time.strftime("%#I:%M %p")}').classes('font-bold')
+                        ui.label(event[0].title).classes('text-xl font-bold')
+                        ui.label(f'{event[0].date.strftime(("%A %B %d, %Y"))} @ {event[0].time.strftime("%#I:%M %p")}').classes('font-bold')
                     ui.space()                    
-                    ui.button("RSVP!", on_click=lambda: rsvp_dialog(service, in_event)).classes('justify-end')
+                    ui.button("RSVP!", on_click=lambda: rsvp_dialog(service, event)).classes('justify-end')
                     if is_auth():
-                        ui.button(icon='edit', on_click=lambda: event_dialog(service, in_event)).classes('justify-end').props('color=red')
-                        ui.button(icon='delete', on_click=lambda: delete_dialog(service, in_event)).classes('justify-end').props('color=red')
+                        ui.button(icon='edit', on_click=lambda: event_dialog(service, event)).classes('justify-end').props('color=red')
+                        ui.button(icon='delete', on_click=lambda: delete_dialog(service, event)).classes('justify-end').props('color=red')
                 with ui.column().classes('p-2 gap-1'):
-                    entry_line("Hares:", ", ".join(event.hosts))
-                    entry_line('Start location:',event.location)
-                    entry_line('TTC:',event.ttc)
-                    entry_line('Cost:',f'${event.cost:.2f}')
-                    entry_line('Route:',event.route.value)
-                    entry_line('Notes from the hares:', event.comments)
+                    entry_line("Hares:", ", ".join(event[0].hosts))
+                    entry_line('Start location:',event[0].location)
+                    entry_line('TTC:',event[0].ttc)
+                    entry_line('Cost:',f'${event[0].cost:.2f}')
+                    entry_line('Route:',event[0].route.value)
+                    entry_line('Notes from the hares:', event[0].comments)
                 
 
-def base(service):
+def base(service: EventService) -> None:
     ui.query('.nicegui-content').classes('p-0')
     ui.query('body').style('background-image: url("/images/background.jpg"); background-size: cover; background-repeat: no-repeat; background-attachment: fixed; background-position: center;' )
     header(service)
@@ -253,7 +253,7 @@ def base(service):
                 event_panel(service, event)
 
 
-def add_sample_data(service):
+def add_sample_data(service: EventService) -> None:
     sample_events = [
         {
             'title': 'Hogans!',
@@ -284,7 +284,7 @@ def add_sample_data(service):
         service.add_event(event_data)
 
 
-def run_app_memory():    
+def run_app_memory() -> None:
     
     repo = EventRepository( session_factory() )
     service = EventService(repo)
@@ -294,7 +294,7 @@ def run_app_memory():
     def index():
         base(service)
 
-def run_app(db_url):    
+def run_app(db_url) -> None:
     
     repo = EventRepository( session_factory(db_url) )
     service = EventService(repo)
