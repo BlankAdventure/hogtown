@@ -23,4 +23,12 @@ async def test_click(user: User) -> None:
 async def test_login(user: User) -> None:
     await user.open('/')
     await user.should_see('Login')
-
+    user.find('Login').click()
+    await user.should_see('Login')
+    await user.should_see('Username')
+    await user.should_see('Password')
+    user.find('Username').type('admin')
+    user.find('Password').type('12345')
+    user.find('Login').click()
+    #await user.should_see('New Event')
+    
