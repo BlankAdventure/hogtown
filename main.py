@@ -10,9 +10,7 @@ from nicegui import ui, app, ElementFilter
 from model import Route, session_factory, EventRepository, EventService, Event_model
 Event = tuple[Event_model, int]
 
-#repo = EventRepository( session_factory() )
-#service = EventService(repo)
-
+site_base = '/'
 app.add_static_files('/images', '.')
 
 about_hasing = '''
@@ -59,7 +57,7 @@ async def logout() -> None:
     app.storage.user.clear()
     ui.notify("You have been logged out.")
     await asyncio.sleep(2)    
-    ui.navigate.to('/')
+    ui.navigate.to(site_base)
 
 def login(username: str, password: str) -> bool:
     '''
@@ -110,7 +108,7 @@ async def login_dialog() -> None:
             app.storage.user['is_authenticated'] = True
             await asyncio.sleep(2)
             ui.notify('Login successful!', color='green')
-            ui.navigate.to('/')            
+            ui.navigate.to(site_base)            
         else:
             ui.notify('Invalid credentials!', color='red')   
         dialog.close()
@@ -200,14 +198,14 @@ async def event_dialog(service: EventService, event: Event|None) -> None:
             if service.modify_event(event[1], event_dict):                
                 ui.notify('event modified successfully!')    
                 await asyncio.sleep(2)
-                ui.navigate.to('/')
+                ui.navigate.to(site_base)
             else:
                 ui.notify('Could not update event.\nYou probably entered something wrong.')
         else:
             if service.add_event(event_dict):
                 ui.notify('event added successfully!')                
                 await asyncio.sleep(2)
-                ui.navigate.to('/')
+                ui.navigate.to(site_base)
             else:
                 ui.notify('Could not add event.\nYou probably entered something wrong.')
 
@@ -258,7 +256,7 @@ def delete_dialog(service: EventService, event: Event) -> None:
     def handle_delete() -> None:
         service.delete_event(event[1])
         ui.notify('event deleted')
-        ui.navigate.to('/')
+        ui.navigate.to(site_base)
         
     with ui.dialog() as dialog, ui.card().classes('gap-0 items-center'):  # max-w-md mx-auto my-4       
         ui.label('Are you sure you want to delete this event?').classes('mb-2 text-lg')
@@ -322,7 +320,7 @@ def header(service: EventService) -> None:
     with ui.header().classes('bg-blue-600 text-white items-center'):
         ui.label('The Hogtown Hash House Harriers').classes('text-2xl p-4')
         with ui.row().classes('ml-auto'):        
-            ui.button('Home', on_click=lambda: ui.navigate.to('/')).classes('text-white')
+            ui.button('Home', on_click=lambda: ui.navigate.to(site_base)).classes('text-white')
             if is_auth():
                 ui.button('New Event', on_click=lambda: event_dialog(service, None)).classes('text-white').props('color=red')
                 ui.button('Logout', on_click=logout).classes('text-white')
@@ -448,7 +446,7 @@ def run_app_memory() -> None:
     service = EventService(repo)
     add_sample_data(service)
 
-    @ui.page('/')
+    @ui.page(site_base)
     def index():
         base(service)
 
@@ -469,7 +467,7 @@ def run_app(db_url) -> None:
     repo = EventRepository( session_factory(db_url) )
     service = EventService(repo)
 
-    @ui.page('/')
+    @ui.page(site_base)
     def index():
         base(service)
 
