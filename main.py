@@ -36,7 +36,7 @@ def borders_on():
     ElementFilter(kind=ui.column).style('border: solid; border-width: thin; border-color: red;');
     ElementFilter(kind=ui.row).style('border: solid; border-width: thin; border-color: green');
     ElementFilter(kind=ui.label).style('border: solid; border-width: thin; border-color: yellow');
-    ElementFilter(kind=ui.element).style('border: solid; border-width: thin; border-color: blue');
+    #ElementFilter(kind=ui.element).style('border: solid; border-width: thin; border-color: blue');
     
 def format_date(date_str: str) -> str:
     if not date_str:
@@ -48,24 +48,63 @@ def format_date(date_str: str) -> str:
         return date_str
 
 async def logout() -> None:
+    '''
+    Logs the user out
+
+    Returns
+    -------
+    None
+
+    '''
     app.storage.user.clear()
     ui.notify("You have been logged out.")
     await asyncio.sleep(2)    
     ui.navigate.to('/')
 
 def login(username: str, password: str) -> bool:
+    '''
+    Checks if username and password are valid for admin login
+
+    Parameters
+    ----------
+    username : str
+        Username.
+    password : str
+        Password.
+
+    Returns
+    -------
+    bool
+        True/false indication if credentials are valid.
+    '''
     if (username == 'admin') and (password == '12345'):
         return True
     return False
                 
 def is_auth() -> bool:
+    '''
+    Checks if current user is authorized (i.e., if logged in)
+
+    Returns
+    -------
+    bool
+        True/false indication if user is currently logged in.
+    '''
     try:
         is_auth = app.storage.user.get('is_authenticated', False)
         return is_auth
     except AssertionError:
         return False    
     
-async def login_dialog() -> None:                
+async def login_dialog() -> None:
+    '''
+    Displays a dialog box for logging in.
+
+    Returns
+    -------
+    None        
+
+    '''                
     async def handle_login() -> None:
         if login(username.value, password.value):
             app.storage.user['is_authenticated'] = True
@@ -84,6 +123,20 @@ async def login_dialog() -> None:
     dialog.open()
 
 def date_picker(in_date: str) -> ui.input:
+    '''
+    Creates an in-line styled date picker element.
+
+    Parameters
+    ----------
+    in_date : str
+        Date to show upon opening.
+
+    Returns
+    -------
+    date : TYPE
+        Handle to the created element.
+
+    '''
     with ui.input('Date:', value=in_date).props('dense').classes('w-40') as date:
         with ui.menu().props('no-parent-event dense') as menu:
             with ui.date().bind_value(date):
@@ -94,6 +147,20 @@ def date_picker(in_date: str) -> ui.input:
     return date
    
 def time_picker(in_time: str) -> ui.input:
+    '''
+    Creates an in-line styled time picker element.
+
+    Parameters
+    ----------
+    in_time : str
+        Time to show upon opening.
+
+    Returns
+    -------
+    time : TYPE
+        Handle to the created element.
+
+    '''
     with ui.input('Time:', value=in_time).props('dense').classes('w-40') as time:
         with ui.menu().props('no-parent-event dense') as menu:
             with ui.time().bind_value(time):
@@ -104,7 +171,20 @@ def time_picker(in_time: str) -> ui.input:
     return time
    
 async def event_dialog(service: EventService, event: Event|None) -> None:
-        
+    '''
+    Displays a dialog box for modifying or creating a new event.
+
+    Parameters
+    ----------
+    service : EventService
+        An EventService instance.
+    event : Event|None
+        The event to modify, or, None if creating a new event.
+
+    Returns
+    -------
+    None
+    '''     
     async def handle_add() -> None:
         event_dict = {'title': title.value,                     
                       'date': date.value,
@@ -160,6 +240,21 @@ async def event_dialog(service: EventService, event: Event|None) -> None:
     dialog.open()
 
 def delete_dialog(service: EventService, event: Event) -> None:    
+    '''
+    Displays a dialog box to confirm event deletion.
+
+    Parameters
+    ----------
+    service : EventService
+        An EventService instance.
+    event : Event
+        The event to delete.
+
+    Returns
+    -------
+    None
+
+    '''
     def handle_delete() -> None:
         service.delete_event(event[1])
         ui.notify('event deleted')
@@ -175,6 +270,20 @@ def delete_dialog(service: EventService, event: Event) -> None:
 
                
 def rsvp_dialog(service: EventService, event: Event) -> None:
+    '''
+    Displays a dialog box for adding a name to the RSVP list.
+
+    Parameters
+    ----------
+    service : EventService
+        An EventService instance.
+    event : Event
+        The event to which the user is RSVPing.
+
+    Returns
+    -------
+    None
+    '''
     def add_rsvp() -> None:
         event[0].rsvp.append(name_input.value)
         service.add_rsvp(event[1], name_input.value)        
@@ -197,6 +306,19 @@ def rsvp_dialog(service: EventService, event: Event) -> None:
     
     
 def header(service: EventService) -> None:
+    '''
+    Creates the page header. Available options depend on logged in/out status.
+
+    Parameters
+    ----------
+    service : EventService
+        An EventService instance
+
+    Returns
+    -------
+    None
+
+    '''
     with ui.header().classes('bg-blue-600 text-white items-center'):
         ui.label('The Hogtown Hash House Harriers').classes('text-2xl p-4')
         with ui.row().classes('ml-auto'):        
@@ -208,6 +330,22 @@ def header(service: EventService) -> None:
                 ui.button('Login', on_click=login_dialog).classes('text-white')
     
 def event_panel(service: EventService, event: Event) -> None:    
+    '''
+    Creates a nice visual area for displaying event details. Includes an
+    RSVP button, and if logged in, edit and delete buttons.
+
+    Parameters
+    ----------
+    service : EventService
+        An EventService instance.
+    event : Event
+        The event to display.
+
+    Returns
+    -------
+    None
+
+    '''
     def entry_line(desc,value):
         with ui.row().classes('p-0 gap-1'):
             ui.label(desc).classes('font-bold')
@@ -235,6 +373,20 @@ def event_panel(service: EventService, event: Event) -> None:
                 
 
 def base(service: EventService) -> None:
+    '''
+    Top-level UI-building function. Generates the header and populates the body
+    with events.
+
+    Parameters
+    ----------
+    service : EventService
+        An EventService instance.
+
+    Returns
+    -------
+    None
+
+    '''
     ui.query('.nicegui-content').classes('p-0')
     ui.query('body').style('background-image: url("/images/background.jpg"); background-size: cover; background-repeat: no-repeat; background-attachment: fixed; background-position: center;' )
     header(service)
@@ -284,7 +436,14 @@ def add_sample_data(service: EventService) -> None:
 
 
 def run_app_memory() -> None:
-    
+    '''
+    Function for launching the app using an in-memory database (useful for testing)
+
+    Returns
+    -------
+    None
+
+    '''
     repo = EventRepository( session_factory() )
     service = EventService(repo)
     add_sample_data(service)
@@ -294,7 +453,19 @@ def run_app_memory() -> None:
         base(service)
 
 def run_app(db_url) -> None:
-    
+    '''
+    Function for launching the app using a persisted database (i.e., for production)    
+
+    Parameters
+    ----------
+    db_url : TYPE
+        sqlite database url.
+
+    Returns
+    -------
+    None
+
+    '''    
     repo = EventRepository( session_factory(db_url) )
     service = EventService(repo)
 

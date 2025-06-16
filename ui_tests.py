@@ -4,7 +4,7 @@ Created on Sat Jun 14 14:05:19 2025
 
 @author: Patrick
 """
-
+import asyncio
 import pytest
 from nicegui.testing import User
 from main import run_app_memory
@@ -30,5 +30,6 @@ async def test_login(user: User) -> None:
     user.find('Username').type('admin')
     user.find('Password').type('12345')
     user.find('Login').click()
-    #await user.should_see('New Event')
+    await asyncio.sleep(2) #take a bit of time 
+    await user.should_see('New Event')
     
