@@ -18,6 +18,7 @@ args = parser.parse_args()
 if args.route:
     print(f'setting new route: {args.route}')
     app.site_base = args.route
+    
     @ui.page('/')
     def redir():
         ui.navigate.to('https://github.com/blankAdventure/')         

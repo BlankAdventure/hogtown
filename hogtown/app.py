@@ -32,23 +32,9 @@ Event = tuple[Event_model, int]
 
 site_base = '/'
 
+with open("intro.txt", encoding='utf-8') as f:
+    about_hashing = f.read()
 
-about_hasing = '''
-Hogtown (aka Toronto) Hash House Harriers (H4) is a Toronto area social group 
-founded in 1987 that meets regularly for events called “hashes”, where 
-participants, called “hashers” work together to find and follow a trail, either 
-running or walking. Typical trails are five to ten kilometers or less, 
-depending on who laid the trail (called the “hare”). Anyone and everyone are 
-welcome to turn up to a hash. Hashing is world-wide and there are hashes in 
-many cities worldwide. A brief history and list of worldwide hashes is here .
-There are no membership fees. There is typically a fee for the hash collected 
-at the start, to cover the cost of a beer at the end and possibly on trail (at 
-a “beer check”). First-timers pay no fee, and non-drinkers, who are regular 
-participants, pay a much smaller fee to cover just the cost of laying the 
-trail. Trails usually start indoors at a pub or house with a social gathering,
-and the pack then heads off about 30 minutes after the “start time” to find 
-and follow the trail. Then there is an optional social gathering indoors after 
-the trail with food and drinks.'''
 
 def borders_on():
     ElementFilter(kind=ui.column).style('border: solid; border-width: thin; border-color: red;');
@@ -411,7 +397,7 @@ def base(service: EventService) -> None:
     
     with ui.column().classes('w-full p-0 m-0'): 
         ui.label('About Hashing').classes('text-2xl mb-4 w-full pl-10 m-0 bg-white/70')
-        ui.label(about_hasing).classes('ml-10 mr-10 text-gray-50 text-xl bg-purple-400/10 backdrop-blur-md') #bg-indigo-500/20
+        ui.label(about_hashing).classes('ml-10 mr-10 text-gray-50 text-xl bg-purple-400/10 backdrop-blur-md') #bg-indigo-500/20
         ui.label('Upcoming Events').classes('text-2xl mb-4 w-full pl-10 bg-white/70')
         
         events = service.get_all_events()
