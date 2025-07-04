@@ -8,28 +8,30 @@ import datetime
 import asyncio
 from nicegui import ui, app, ElementFilter
 
-try:
+
+# Argghh, some annoying path/import stuff to deal with.
+try: # When imported as a module:
     from .model import (Route, 
                         session_factory, 
                         EventRepository, 
                         EventService, 
                         Event_model
                         )    
-
-except ImportError: # running in standalone mode    
+    app.add_static_files('/images', 'hogtown')
+except ImportError: # When running as a standalone script:
     from model import (Route, 
                        session_factory, 
                        EventRepository, 
                        EventService, 
                        Event_model
                        )    
-
+    app.add_static_files('/images', '.')
 
 
 Event = tuple[Event_model, int]
 
 site_base = '/'
-app.add_static_files('/images', '.')
+
 
 about_hasing = '''
 Hogtown (aka Toronto) Hash House Harriers (H4) is a Toronto area social group 
