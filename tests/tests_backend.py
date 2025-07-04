@@ -8,7 +8,7 @@ Created on Tue Jun  3 21:02:56 2025
 import pytest
 from unittest.mock import Mock
 from datetime import date, time
-from .hogtown import Event_model, EventService, EventRepository, session_factory
+from ..hogtown.model import Event_model, EventService, EventRepository, session_factory
 
 @pytest.fixture
 def in_memory_db():

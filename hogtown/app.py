@@ -8,13 +8,22 @@ import datetime
 import asyncio
 from nicegui import ui, app, ElementFilter
 
-from model import (
-    Route, 
-    session_factory, 
-    EventRepository, 
-    EventService, 
-    Event_model
-    )
+try:
+    from .model import (Route, 
+                        session_factory, 
+                        EventRepository, 
+                        EventService, 
+                        Event_model
+                        )    
+
+except ImportError: # running in standalone mode    
+    from model import (Route, 
+                       session_factory, 
+                       EventRepository, 
+                       EventService, 
+                       Event_model
+                       )    
+
 
 
 Event = tuple[Event_model, int]
