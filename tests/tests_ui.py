@@ -7,7 +7,8 @@ Created on Sat Jun 14 14:05:19 2025
 import asyncio
 import pytest
 from nicegui.testing import User
-from main import run_app_memory
+from ..hogtown.app import run_app_memory
+
 pytest_plugins = ['nicegui.testing.user_plugin']
 
 
