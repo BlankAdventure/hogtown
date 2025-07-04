@@ -6,7 +6,32 @@ Created on Mon Jun 16 21:20:16 2025
 """
 from nicegui import ui
 from hogtown import app
+import argparse
 
-app.site_base = '/h3'
-app.run_app_memory()
-ui.run(storage_secret='testtest')
+parser = argparse.ArgumentParser()
+parser.add_argument('-db', default=None, help='URL to db. Defaults to memory is not specfified.')
+parser.add_argument('-r','--route', help='Optional non-default route to host the site')
+args = parser.parse_args()
+
+
+if args.route:
+    app.site_base = args.route
+    print(f'setting new route: {args.route}')
+else:
+    print('Using default route')
+    
+if args.db:
+    print(f'Running with persisted db: {args.db}')
+    app.run_app(args.db)
+else:
+    print('Running with memory db')
+    app.run_app_memory()
+    
+
+ui.run(storage_secret='testtest', reload=False)
+
+
+
+#print(args.production)
+
+#print(args.route)
