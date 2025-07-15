@@ -1,0 +1,1 @@
+Demo website for the Hogtown Hash House Harriers (https://www.hogtownh3.com/). The site is essentially just an events calendar with a sqlite backend and an admin mode for CRUD functionality. The main point is to demonstrate python-only full stack development using the nicegui (https://nicegui.io/) library.
